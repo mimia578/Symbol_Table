@@ -1,12 +1,14 @@
 %{
-
+#include"symbol_info.h"
 #include "symbol_table.h"
 
 #define YYSTYPE symbol_info*
 
 extern FILE *yyin;
+
 int yyparse(void);
 int yylex(void);
+
 extern YYSTYPE yylval;
 
 // create your symbol table here.
@@ -20,11 +22,12 @@ ofstream outlog;
 // you may declare other necessary variables here to store necessary info
 // such as current variable type, variable list, function name, return type, function parameter types, parameters names etc.
 
-void yyerror(char *s)
-{
-	outlog<<"At line "<<lines<<" "<<s<<endl<<endl;
+symbol_table st(10, &outlog);
+vector<symbol_info *> params;
+int param_count = 0;
 
-    // you may need to reinitialize variables if you find an error
+void yyerror(char *s) {
+    outlog<<"At line "<<lines<<" "<<s<<endl<<endl;
 }
 
 %}
@@ -41,7 +44,7 @@ start : program
 		outlog<<"At line no: "<<lines<<" start : program "<<endl<<endl;
 		outlog<<"Symbol Table"<<endl<<endl;
 		
-		// Print your whole symbol table here
+		st.print_all_scopes();
 	}
 	;
 

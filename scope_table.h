@@ -10,7 +10,11 @@ private:
 
     int hash_function(string name)
     {
-        // write your hash function here
+        unsigned long hash = 5381;
+        for (char c : name) {
+            hash = ((hash << 5) + hash) + c; // hash * 33 + c
+        }
+        return hash % bucket_count;
     }
 
 public:
@@ -23,14 +27,130 @@ public:
     bool delete_from_scope(symbol_info* symbol);
     void print_scope_table(ofstream& outlog);
     ~scope_table();
-
-    // you can add more methods if you need
+    //ennd of function dec
 };
+ //finishing the function definitions
+scope_table::scope_table()
+{
+    this->bucket_count = 10;
+    this->unique_id = 1;
+    this->parent_scope = NULL;
+    table.resize(bucket_count);
+}
 
-// complete the methods of scope_table class
+scope_table::scope_table(int bucket_count, int unique_id, scope_table *parent_scope)
+{
+    this->bucket_count = bucket_count;
+    this->unique_id = unique_id;
+    this->parent_scope = parent_scope;
+    table.resize(bucket_count);
+}
+
+scope_table *scope_table::get_parent_scope()
+{
+    return parent_scope;
+}
+
+int scope_table::get_unique_id()
+{
+    return unique_id;
+}
+
+symbol_info *scope_table::lookup_in_scope(symbol_info* symbol)
+{
+    int bucket_index = hash_function(symbol->get_name());
+    
+    for (auto it = table[bucket_index].begin(); it != table[bucket_index].end(); it++)
+    {
+        if ((*it)->get_name() == symbol->get_name())
+        {
+            return *it;
+        }
+    }
+    return NULL;
+}
+
+bool scope_table::insert_in_scope(symbol_info* symbol)
+{
+    if (lookup_in_scope(symbol) != NULL)
+    {
+        return false; // Symbol already exists in this scope
+    }
+    
+    int bucket_index = hash_function(symbol->get_name());
+    table[bucket_index].push_back(symbol);
+    return true;
+}
+
+bool scope_table::delete_from_scope(symbol_info* symbol)
+{
+    int bucket_index = hash_function(symbol->get_name());
+    
+    for (auto it = table[bucket_index].begin(); it != table[bucket_index].end(); it++)
+    {
+        if ((*it)->get_name() == symbol->get_name())
+        {
+            table[bucket_index].erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
 void scope_table::print_scope_table(ofstream& outlog)
 {
-    outlog << "ScopeTable # "+ to_string(unique_id) << endl;
+    outlog << "ScopeTable # " << unique_id << endl;
+    
+    for (int i = 0; i < bucket_count; i++)
+    {
+        if (!table[i].empty())
+        {
+            outlog << i << " --> ";
+            for (auto it = table[i].begin(); it != table[i].end(); it++)
+            {
+                outlog << "< " << (*it)->get_name();
+                
+                if ((*it)->get_symbol_type() == "function")
+                {
+                    outlog << " : FUNCTION, Return Type: " << (*it)->get_return_type();
+                    outlog << ", Parameters: (";
+                    vector<pair<string, string>> params = (*it)->get_parameters();
+                    for (int j = 0; j < params.size(); j++)
+                    {
+                        outlog << params[j].first;
+                        if (!params[j].second.empty())
+                            outlog << " " << params[j].second;
+                        if (j < params.size() - 1)
+                            outlog << ", ";
+                    }
+                    outlog << ")";
+                }
+                else if ((*it)->get_symbol_type() == "array")
+                {
+                    outlog << " : ARRAY, Type: " << (*it)->get_data_type();
+                    outlog << ", Size: " << (*it)->get_array_size();
+                }
+                else if ((*it)->get_symbol_type() == "variable")
+                {
+                    outlog << " : VARIABLE, Type: " << (*it)->get_data_type();
+                }
+                
+                outlog << " > ";
+            }
+            outlog << endl;
+        }
+    }
+    outlog << endl;
+}
 
-    //iterate through the current scope table and print the symbols and all relevant information
+scope_table::~scope_table()
+{
+    for (int i = 0; i < bucket_count; i++)
+    {
+        for (auto it = table[i].begin(); it != table[i].end(); it++)
+        {
+            delete *it;
+        }
+        table[i].clear();
+    }
 }
