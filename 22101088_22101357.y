@@ -11,16 +11,9 @@ int yylex(void);
 
 extern YYSTYPE yylval;
 
-// create your symbol table here.
-// You can store the pointer to your symbol table in a global variable
-// or you can create an object
-
 int lines = 1;
 
 ofstream outlog;
-
-// you may declare other necessary variables here to store necessary info
-// such as current variable type, variable list, function name, return type, function parameter types, parameters names etc.
 
 symbol_table st(10, &outlog);
 vector<symbol_info *> params;
@@ -42,8 +35,7 @@ void yyerror(char *s) {
 start : program
 	{
 		outlog<<"At line no: "<<lines<<" start : program "<<endl<<endl;
-		outlog<<"Symbol Table"<<endl<<endl;
-		
+		outlog<<endl<<endl;
 		st.print_all_scopes();
 	}
 	;
@@ -86,10 +78,6 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statem
 			outlog<<$1->getname()<<" "<<$2->getname()<<"("+$4->getname()+")\n"<<$6->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname()+" "+$2->getname()+"("+$4->getname()+")\n"+$6->getname(),"func_def");	
-			
-			// The function definition is complete.
-            // You can now insert necessary information about the function into the symbol table
-            // However, note that the scope of the function and the scope of the compound statement are different.
 		}
 		| type_specifier ID LPAREN RPAREN compound_statement
 		{
@@ -98,10 +86,6 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statem
 			outlog<<$1->getname()<<" "<<$2->getname()<<"()\n"<<$5->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname()+" "+$2->getname()+"()\n"+$5->getname(),"func_def");	
-			
-			// The function definition is complete.
-            // You can now insert necessary information about the function into the symbol table
-            // However, note that the scope of the function and the scope of the compound statement are different.
 		}
  		;
 
@@ -111,9 +95,6 @@ parameter_list : parameter_list COMMA type_specifier ID
 			outlog<<$1->getname()<<","<<$3->getname()<<" "<<$4->getname()<<endl<<endl;
 					
 			$$ = new symbol_info($1->getname()+","+$3->getname()+" "+$4->getname(),"param_list");
-			
-            // store the necessary information about the function parameters
-            // They will be needed when you want to enter the function into the symbol table
 		}
 		| parameter_list COMMA type_specifier
 		{
@@ -121,9 +102,6 @@ parameter_list : parameter_list COMMA type_specifier ID
 			outlog<<$1->getname()<<","<<$3->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname()+","+$3->getname(),"param_list");
-			
-            // store the necessary information about the function parameters
-            // They will be needed when you want to enter the function into the symbol table
 		}
  		| type_specifier ID
  		{
@@ -131,9 +109,6 @@ parameter_list : parameter_list COMMA type_specifier ID
 			outlog<<$1->getname()<<" "<<$2->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname()+" "+$2->getname(),"param_list");
-			
-            // store the necessary information about the function parameters
-            // They will be needed when you want to enter the function into the symbol table
 		}
 		| type_specifier
 		{
@@ -141,22 +116,15 @@ parameter_list : parameter_list COMMA type_specifier ID
 			outlog<<$1->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname(),"param_list");
-			
-            // store the necessary information about the function parameters
-            // They will be needed when you want to enter the function into the symbol table
 		}
  		;
 
 compound_statement : LCURL statements RCURL
 			{ 
  		    	outlog<<"At line no: "<<lines<<" compound_statement : LCURL statements RCURL "<<endl<<endl;
-				outlog<<"{\n"+$3->getname()+"\n}"<<endl<<endl;
+				outlog<<"{\n"+$2->getname()+"\n}"<<endl<<endl;
 				
-				$$ = new symbol_info("{\n"+$3->getname()+"\n}","comp_stmnt");
-				
-                // The compound statement is complete.
-                // Print the symbol table here and exit the scope
-                // Note that function parameters should be in the current scope
+				$$ = new symbol_info("{\n"+$2->getname()+"\n}","comp_stmnt");
  		    }
  		    | LCURL RCURL
  		    { 
@@ -164,9 +132,6 @@ compound_statement : LCURL statements RCURL
 				outlog<<"{\n}"<<endl<<endl;
 				
 				$$ = new symbol_info("{\n}","comp_stmnt");
-				
-				// The compound statement is complete.
-                // Print the symbol table here and exit the scope
  		    }
  		    ;
  		    
@@ -176,8 +141,6 @@ var_declaration : type_specifier declaration_list SEMICOLON
 			outlog<<$1->getname()<<" "<<$2->getname()<<";"<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname()+" "+$2->getname()+";","var_dec");
-			
-			// Insert necessary information about the variables in the symbol table
 		 }
  		 ;
 
@@ -208,33 +171,29 @@ declaration_list : declaration_list COMMA ID
 		  {
  		  	outlog<<"At line no: "<<lines<<" declaration_list : declaration_list COMMA ID "<<endl<<endl;
  		  	outlog<<$1->getname()+","<<$3->getname()<<endl<<endl;
-
-            // you may need to store the variable names to insert them in symbol table here or later
 			
+			$$ = new symbol_info($1->getname()+","+$3->getname(),"dec_list");
  		  }
- 		  | declaration_list COMMA ID LTHIRD CONST_INT RTHIRD //array after some declaration
+ 		  | declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
  		  {
  		  	outlog<<"At line no: "<<lines<<" declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD "<<endl<<endl;
  		  	outlog<<$1->getname()+","<<$3->getname()<<"["<<$5->getname()<<"]"<<endl<<endl;
-
-            // you may need to store the variable names to insert them in symbol table here or later
 			
+			$$ = new symbol_info($1->getname()+","+$3->getname()+"["+$5->getname()+"]","dec_list");
  		  }
  		  |ID
  		  {
  		  	outlog<<"At line no: "<<lines<<" declaration_list : ID "<<endl<<endl;
 			outlog<<$1->getname()<<endl<<endl;
-
-            // you may need to store the variable names to insert them in symbol table here or later
 			
+			$$ = new symbol_info($1->getname(),"dec_list");
  		  }
- 		  | ID LTHIRD CONST_INT RTHIRD //array
+ 		  | ID LTHIRD CONST_INT RTHIRD
  		  {
  		  	outlog<<"At line no: "<<lines<<" declaration_list : ID LTHIRD CONST_INT RTHIRD "<<endl<<endl;
 			outlog<<$1->getname()<<"["<<$3->getname()<<"]"<<endl<<endl;
-
-            // you may need to store the variable names to insert them in symbol table here or later
-            
+			
+			$$ = new symbol_info($1->getname()+"["+$3->getname()+"]","dec_list");
  		  }
  		  ;
  		  
@@ -268,7 +227,6 @@ statement : var_declaration
             outlog<<$1->getname()<<endl<<endl;
 
             $$ = new symbol_info($1->getname(),"stmnt");
-	  		
 	  }
 	  | expression_statement
 	  {
@@ -350,7 +308,6 @@ variable : ID
 		outlog<<$1->getname()<<endl<<endl;
 			
 		$$ = new symbol_info($1->getname(),"varbl");
-		
 	 }	
 	 | ID LTHIRD expression RTHIRD 
 	 {
@@ -415,7 +372,6 @@ simple_expression : term
 			outlog<<$1->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname(),"simp_expr");
-			
 	      }
 		  | simple_expression ADDOP term 
 		  {
@@ -426,13 +382,12 @@ simple_expression : term
 	      }
 		  ;
 					
-term :	unary_expression //term can be void because of un_expr->factor
+term :	unary_expression
      {
 	    	outlog<<"At line no: "<<lines<<" term : unary_expression "<<endl<<endl;
 			outlog<<$1->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname(),"term");
-			
 	 }
      |  term MULOP unary_expression
      {
@@ -440,11 +395,10 @@ term :	unary_expression //term can be void because of un_expr->factor
 			outlog<<$1->getname()<<$2->getname()<<$3->getname()<<endl<<endl;
 			
 			$$ = new symbol_info($1->getname()+$2->getname()+$3->getname(),"term");
-			
 	 }
      ;
 
-unary_expression : ADDOP unary_expression  // un_expr can be void because of factor
+unary_expression : ADDOP unary_expression
 		 {
 	    	outlog<<"At line no: "<<lines<<" unary_expression : ADDOP unary_expression "<<endl<<endl;
 			outlog<<$1->getname()<<$2->getname()<<endl<<endl;
@@ -561,14 +515,13 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	yyin = fopen(argv[1], "r");
-	outlog.open("my_log.txt", ios::trunc);
+	outlog.open("22101088_22101357_log.txt", ios::trunc);
 	
 	if(yyin == NULL)
 	{
 		cout<<"Couldn't open file"<<endl;
 		return 0;
 	}
-	// Enter the global or the first scope here
 
 	yyparse();
 	

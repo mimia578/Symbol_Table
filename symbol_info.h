@@ -1,3 +1,6 @@
+#ifndef SYMBOL_INFO_H
+#define SYMBOL_INFO_H
+
 #include<bits/stdc++.h>
 using namespace std;
 
@@ -7,37 +10,96 @@ private:
     string name;
     string type;
 
-    // Write necessary attributes to store what type of symbol it is (variable/array/function)
-    // Write necessary attributes to store the type/return type of the symbol (int/float/void/...)
-    // Write necessary attributes to store the parameters of a function
-    // Write necessary attributes to store the array size if the symbol is an array
+    string symbol_type = "NAN"; // variable, array, or function
+    string data_type; // int, float, void
+    string return_type;
+    vector<pair<string, string>> parameters; // (type, name) pairs
+    int array_size;
 
 public:
+
     symbol_info(string name, string type)
     {
         this->name = name;
         this->type = type;
+        this->array_size = 0;
     }
+
     string get_name()
     {
         return name;
     }
+    
+    // Add alias for compatibility
+    string getname()
+    {
+        return name;
+    }
+
     string get_type()
     {
         return type;
     }
+
+    string get_symbol_type()
+    {
+        return symbol_type;
+    }
+
+    string get_data_type()
+    {
+        return data_type;
+    }
+
+    string get_return_type()
+    {
+        return return_type;
+    }
+
+    int get_array_size()
+    {
+        return array_size;
+    }
+
+    vector<pair<string, string>> get_parameters()
+    {
+        return parameters;
+    }
+
     void set_name(string name)
     {
         this->name = name;
     }
+
     void set_type(string type)
     {
         this->type = type;
     }
-    // Write necessary functions to set and get the attributes
 
-    ~symbol_info()
+    void set_symbol_type(string symbol_type)
     {
-        // Write necessary code to deallocate memory, if necessary
+        this->symbol_type = symbol_type;
+    }
+
+    void set_data_type(string data_type)
+    {
+        this->data_type = data_type;
+    }
+
+    void set_return_type(string return_type)
+    {
+        this->return_type = return_type;
+    }
+
+    void set_array_size(int size)
+    {
+        this->array_size = size;
+    }
+
+    void add_parameter(string type, string name)
+    {
+        parameters.push_back(make_pair(type, name));
     }
 };
+
+#endif
